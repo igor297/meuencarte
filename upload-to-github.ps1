@@ -1,5 +1,5 @@
 # Script PowerShell para preparar e enviar o projeto para GitHub
-# Criado para o projeto MeuEncarte - Versão sem token
+# Versão aprimorada com tratamento de erros de push
 
 # Verifica se o Git está instalado
 try {
@@ -12,8 +12,8 @@ try {
 
 # Configurações do repositório
 $repoUrl = "https://github.com/igor297/meuencarte.git"
-$branch = "main"  # ou "master" se o repositório usar o branch master como padrão
-$commitMessage = "Versão inicial do sistema de encarte"
+$branch = "main"
+$commitMessage = "Atualização do sistema de encarte"
 
 # Pergunta ao usuário nome e email para configuração do Git
 $gitUserName = Read-Host "Digite seu nome para a configuração do Git"
@@ -27,18 +27,15 @@ git config --global user.email "$gitEmail"
 # Navega para o diretório do projeto
 Set-Location -Path "c:\Users\HP\Documents\meuencarte2"
 
-# Exclui a pasta .git se já existir
-if (Test-Path ".git") {
-    Write-Host "Removendo configuração Git existente..." -ForegroundColor Yellow
-    Remove-Item -Recurse -Force ".git"
-}
-
-# Inicializa um novo repositório Git
-Write-Host "Inicializando repositório Git..." -ForegroundColor Cyan
-git init
-
-# Cria um arquivo .gitignore para excluir arquivos desnecessários
-$gitignore = @"
+# Verifica se já existe um repositório Git
+$gitExists = Test-Path ".git"
+if (-not $gitExists) {
+    # Inicializa um novo repositório Git
+    Write-Host "Inicializando novo repositório Git..." -ForegroundColor Cyan
+    git init
+    
+    # Cria um arquivo .gitignore para excluir arquivos desnecessários
+    $gitignore = @"
 # Dependências
 node_modules/
 npm-debug.log
@@ -77,9 +74,11 @@ logs/
 *.log
 "@
 
-$gitignore | Out-File -FilePath ".gitignore" -Encoding utf8
-
-Write-Host "Arquivo .gitignore criado" -ForegroundColor Green
+    $gitignore | Out-File -FilePath ".gitignore" -Encoding utf8
+    Write-Host "Arquivo .gitignore criado" -ForegroundColor Green
+} else {
+    Write-Host "Repositório Git existente encontrado." -ForegroundColor Yellow
+}
 
 # Adiciona todos os arquivos ao Git
 Write-Host "Adicionando arquivos ao repositório..." -ForegroundColor Cyan
@@ -89,9 +88,15 @@ git add .
 Write-Host "Commitando arquivos..." -ForegroundColor Cyan
 git commit -m "$commitMessage"
 
-# Configura o remote origin
-Write-Host "Configurando remote origin para $repoUrl" -ForegroundColor Cyan
-git remote add origin $repoUrl
+# Verifica se o remote origin já está configurado
+$remoteExists = git remote -v | Select-String -Pattern "origin"
+if (-not $remoteExists) {
+    # Configura o remote origin
+    Write-Host "Configurando remote origin para $repoUrl" -ForegroundColor Cyan
+    git remote add origin $repoUrl
+} else {
+    Write-Host "Remote origin já está configurado." -ForegroundColor Yellow
+}
 
 # Configura o branch principal
 Write-Host "Configurando branch para $branch" -ForegroundColor Cyan
@@ -99,36 +104,53 @@ git branch -M $branch
 
 # Tenta fazer push para o repositório remoto
 try {
-    Write-Host "Enviando arquivos para GitHub..." -ForegroundColor Cyan
-    
-    # Usa a autenticação padrão configurada no sistema
-    # Isso usará credenciais armazenadas ou SSH, se configurado
+    Write-Host "Tentando push normal para GitHub..." -ForegroundColor Cyan
     git push -u origin $branch
-    
     Write-Host "Projeto enviado com sucesso para o GitHub!" -ForegroundColor Green
-    Write-Host "Acesse seu repositório em: https://github.com/igor297/meuencarte" -ForegroundColor Green
 } catch {
-    Write-Host "Ocorreu um erro ao fazer push para o GitHub: $_" -ForegroundColor Red
+    Write-Host "Push normal falhou. Tentando opções alternativas..." -ForegroundColor Yellow
     
-    Write-Host @"
+    $choice = Read-Host @"
 
-Se o GitHub pedir credenciais durante o push, você tem algumas opções:
+Escolha uma opção:
+1. Pull e depois push (tenta mesclar alterações remotas)
+2. Force push (sobrescreve alterações remotas - CUIDADO!)
+3. Cancelar
 
-1. Use seu nome de usuário GitHub e a senha (ou token pessoal se 2FA estiver ativado)
-2. Configure a credencial manager do Git:
-   git config --global credential.helper manager
+Digite o número da opção
+"@
 
-Se o repositório já existir com conteúdo, pode ser necessário um merge ou force push:
-3. Para fazer merge: git pull origin $branch --allow-unrelated-histories
-4. Para forçar push (cuidado!): git push -f origin $branch
-
-Para configurar SSH e evitar inserir senha (recomendado):
-5. Gere uma chave SSH: ssh-keygen -t ed25519 -C "seu-email@exemplo.com"
-6. Adicione ao GitHub: https://github.com/settings/keys
-7. Mude o remote: git remote set-url origin git@github.com:igor297/meuencarte.git
-
-"@ -ForegroundColor Yellow
+    switch ($choice) {
+        "1" {
+            Write-Host "Tentando pull e depois push..." -ForegroundColor Cyan
+            try {
+                git pull --allow-unrelated-histories origin $branch
+                git push -u origin $branch
+                Write-Host "Merge e push bem-sucedidos!" -ForegroundColor Green
+            } catch {
+                Write-Host "Falha ao tentar pull e push: $_" -ForegroundColor Red
+            }
+        }
+        "2" {
+            Write-Host "ATENÇÃO: Você escolheu force push. Isso sobrescreverá as alterações remotas!" -ForegroundColor Red
+            $confirm = Read-Host "Digite 'SIM' para confirmar o force push"
+            if ($confirm -eq "SIM") {
+                try {
+                    git push -f origin $branch
+                    Write-Host "Force push concluído com sucesso!" -ForegroundColor Green
+                } catch {
+                    Write-Host "Falha ao tentar force push: $_" -ForegroundColor Red
+                }
+            } else {
+                Write-Host "Force push cancelado." -ForegroundColor Yellow
+            }
+        }
+        default {
+            Write-Host "Operação cancelada." -ForegroundColor Yellow
+        }
+    }
 }
 
+Write-Host "Acesse seu repositório em: https://github.com/igor297/meuencarte" -ForegroundColor Green
 Write-Host "Pressione qualquer tecla para sair..."
 $null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
