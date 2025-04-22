@@ -1,0 +1,19 @@
+{
+  "name": "meuencarte2",
+  "version": "1.0.0",
+  "description": "Sistema de criação de encartes promocionais",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js"
+  },
+  "dependencies": {
+    "body-parser": "^1.20.3",
+    "cors": "^2.8.5",
+    "express": "^4.21.2",
+    "puppeteer": "^21.5.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  }
+}

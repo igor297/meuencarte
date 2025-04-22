@@ -1,0 +1,29 @@
+@page {
+    size: A4;
+    margin: 0;
+}
+
+body {
+    width: 210mm;
+    height: 297mm;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    position: relative;
+}
+
+.a4-page {
+    width: 210mm;
+    height: 297mm;
+    box-sizing: border-box;
+    position: relative;
+    page-break-after: avoid;
+    page-break-inside: avoid;
+    overflow: hidden;
+}
+
+/* Evitar quebras de página dentro dos elementos */
+.produto-card, .decoracao-imagem {
+    page-break-inside: avoid;
+    break-inside: avoid;
+}

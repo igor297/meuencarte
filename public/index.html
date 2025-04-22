@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Meu Encarte</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📄</text></svg>">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/mobile.css"> <!-- Novo CSS para mobile -->
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&family=Open+Sans&family=Lato&family=Montserrat&family=Oswald&family=Raleway&family=Poppins&family=Source+Sans+Pro&family=Ubuntu&family=Merriweather&family=Playfair+Display&family=Nunito&family=Quicksand&family=Cabin&family=Josefin+Sans&family=Pacifico&family=Dancing+Script&family=Shadows+Into+Light&family=Lobster&family=Permanent+Marker&display=swap" rel="stylesheet">
+    <meta name="theme-color" content="#0066cc"> <!-- Cor da barra do navegador mobile -->
+    <meta name="apple-mobile-web-app-capable" content="yes"> <!-- Modo fullscreen em iOS -->
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"> <!-- Estilo da barra iOS -->
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Meu Sistema de Encarte</h1>
+        </header>
+
+        <main>
+            <div class="editor-container">
+                <div class="editor-controls">
+                    <button id="definir-fundo" class="btn">Definir Fundo</button>
+                    <button id="adicionar-produto" class="btn">Adicionar Produto</button>
+                    <button id="adicionar-decoracao" class="btn">Adicionar Decoração</button>
+                    <button id="gerar-pdf" class="btn">Gerar PDF</button>
+                    <button id="mostrar-info" class="btn btn-info">Informações</button>
+                </div>
+
+                <div class="encarte-preview">
+                    <div id="encarte-a4" class="a4-page">
+                        <!-- Aqui serão inseridos os produtos do encarte -->
+
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal para adicionar/editar produto -->
+    <div id="produto-modal" class="modal">
+        <div class="modal-content">
+            <span class="fechar-modal">&times;</span>
+            <h2>Adicionar Produto</h2>
+            
+            <div class="form-group">
+                <label for="url-imagem">URL da Imagem:</label>
+                <input type="url" id="url-imagem" placeholder="https://exemplo.com/imagem.jpg">
+                <div class="preview-imagem">
+                    <img id="preview" src="" alt="Preview da imagem" style="display: none; max-width: 150px;">
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="nome-produto">Nome do Produto:</label>
+                <div class="input-with-counter">
+                    <input type="text" id="nome-produto" placeholder="Digite o nome do produto">
+                    <div class="contador-caracteres nome-contador">
+                        <span id="contador-nome">0</span> chars
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; gap: 15px; margin-top: 10px;"> <!-- Container para tamanho e fonte -->
+                    <div class="tamanho-titulo-group">
+                        <label for="tamanho-titulo">Tamanho (px):</label> <!-- Label simplificado -->
+                        <input type="number" id="tamanho-titulo" value="18" min="8" max="72" style="width: 80px;">
+                    </div>
+                    <div class="fonte-titulo-group" style="flex-grow: 1;"> <!-- Grupo para a fonte -->
+                        <label for="fonte-texto">Fonte:</label> <!-- Label simplificado -->
+                        <select id="fonte-texto">
+                            <option value="Arial" selected>Arial</option>
+                            <option value="Verdana">Verdana</option>
+                            <option value="Helvetica">Helvetica</option>
+                            <option value="Times New Roman">Times New Roman</option>
+                            <option value="Georgia">Georgia</option>
+                            <option value="Impact">Impact</option>
+                            <option value="Oswald">Oswald</option>
+                            <option value="Montserrat">Montserrat</option>
+                            <option value="Lato">Lato</option>
+                            <option value="Poppins">Poppins</option>
+                        </select>
+                        <div class="fonte-preview" style="margin-top: 5px;"> <!-- Preview movido para cá -->
+                            <span id="texto-preview">Texto</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="preco-produto">Preço do Produto (R$):</label>
+                <input type="number" id="preco-produto" step="0.01" placeholder="0,00">
+            </div>
+            
+            <div class="form-group">
+                <label for="descricao-produto">Descrição (opcional):</label>
+                <textarea id="descricao-produto" placeholder="Digite uma descrição do produto..."></textarea>
+                <div class="contador-caracteres">
+                    <span id="contador">0</span> chars
+                </div>
+                <div class="tamanho-descricao-group">
+                    <label for="tamanho-descricao" style="margin-top:8px;">Tamanho da Descrição (px):</label>
+                    <input type="number" id="tamanho-descricao" value="14" min="8" max="72" style="width: 80px;"> <!-- Largura reduzida -->
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="cor-texto">Cor do Nome:</label>
+                <div class="color-preview-container">
+                    <input type="color" id="cor-texto" value="#000000">
+                    <div class="texto-preview nome-preview">
+                        <span>Nome do Produto</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="cor-descricao">Cor da Descrição:</label>
+                <div class="color-preview-container">
+                    <input type="color" id="cor-descricao" value="#666666">
+                    <div class="texto-preview descricao-preview">
+                        <span>Descrição do item</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="cor-preco">Cor do Preço:</label>
+                <div class="color-preview-container">
+                    <input type="color" id="cor-preco" value="#FF0000">
+                    <div class="texto-preview preco-preview">
+                        <span>R$ 10,00</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="tamanho-texto">Tamanho do Texto (px):</label>
+                <input type="number" id="tamanho-texto" value="16" min="8" max="72">
+            </div>
+            
+            <div class="form-group">
+                <label for="cor-fundo-produto">Cor do Fundo:</label>
+                <div class="color-options">
+                    <input type="color" id="cor-fundo-produto" value="#FFFFFF">
+                    <div class="checkbox-container">
+                        <input type="checkbox" id="fundo-transparente-produto">
+                        <label for="fundo-transparente-produto">Transparente</label>
+                    </div>
+                </div>
+                <small class="dica-fundo">Escolha uma cor para o fundo ou marque "Transparente" para removê-lo. Se nenhuma opção for selecionada, a cor branca será aplicada automaticamente.</small>
+            </div>
+            
+            <!-- Nova seção para alinhamento de elementos -->
+            <div class="form-group">
+                <label>Alinhamento dos elementos:</label>
+                <div class="alinhamento-container">
+                    <div class="alinhamento-grupo">
+                        <label>Imagem:</label>
+                        <div class="alinhamento-options">
+                            <button type="button" class="btn-alinhamento" data-alvo="imagem" data-alinhamento="left"><i class="align-left-icon">◄</i></button>
+                            <button type="button" class="btn-alinhamento active" data-alvo="imagem" data-alinhamento="center"><i class="align-center-icon">■</i></button>
+                            <button type="button" class="btn-alinhamento" data-alvo="imagem" data-alinhamento="right"><i class="align-right-icon">►</i></button>
+                        </div>
+                    </div>
+                    <div class="alinhamento-grupo">
+                        <label>Nome:</label>
+                        <div class="alinhamento-options">
+                            <button type="button" class="btn-alinhamento" data-alvo="nome" data-alinhamento="left"><i class="align-left-icon">◄</i></button>
+                            <button type="button" class="btn-alinhamento active" data-alvo="nome" data-alinhamento="center"><i class="align-center-icon">■</i></button>
+                            <button type="button" class="btn-alinhamento" data-alvo="nome" data-alinhamento="right"><i class="align-right-icon">►</i></button>
+                        </div>
+                    </div>
+                    <div class="alinhamento-grupo">
+                        <label>Descrição:</label>
+                        <div class="alinhamento-options">
+                            <button type="button" class="btn-alinhamento" data-alvo="descricao" data-alinhamento="left"><i class="align-left-icon">◄</i></button>
+                            <button type="button" class="btn-alinhamento active" data-alvo="descricao" data-alinhamento="center"><i class="align-center-icon">■</i></button>
+                            <button type="button" class="btn-alinhamento" data-alvo="descricao" data-alinhamento="right"><i class="align-right-icon">►</i></button>
+                        </div>
+                    </div>
+                    <div class="alinhamento-grupo">
+                        <label>Preço:</label>
+                        <div class="alinhamento-options">
+                            <button type="button" class="btn-alinhamento" data-alvo="preco" data-alinhamento="left"><i class="align-left-icon">◄</i></button>
+                            <button type="button" class="btn-alinhamento active" data-alvo="preco" data-alinhamento="center"><i class="align-center-icon">■</i></button>
+                            <button type="button" class="btn-alinhamento" data-alvo="preco" data-alinhamento="right"><i class="align-right-icon">►</i></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <button id="salvar-produto" class="btn btn-save">Salvar Produto</button>
+        </div>
+    </div>  
+    
+    <!-- Modal para definir o fundo do encarte -->
+    <div id="fundo-modal" class="modal">
+        <div class="modal-content">
+            <span class="fechar-modal-fundo">&times;</span>
+            <h2>Definir Fundo do Encarte</h2>
+            <div class="form-group">
+                <label for="url-fundo">URL da Imagem de Fundo:</label>
+                <input type="url" id="url-fundo" placeholder="https://exemplo.com/fundo.jpg">
+                <div class="preview-imagem">
+                    <img id="preview-fundo" src="" alt="Preview do fundo" style="display: none; max-width: 100%; max-height: 200px;">
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Opções de Exibição:</label>
+                <select id="modo-fundo">
+                    <option value="cover">Cobrir toda área</option>
+                    <option value="contain">Ajustar dentro da área</option>
+                    <option value="repeat">Repetir (padrão)</option>
+                    <option value="no-repeat">Sem repetição</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="opacidade-fundo">Opacidade do fundo:</label>
+                <input type="range" id="opacidade-fundo" min="0.1" max="1" step="0.1" value="1">
+                <span id="valor-opacidade">100%</span>
+            </div>
+            <button id="aplicar-fundo" class="btn btn-save">Aplicar Fundo</button>
+            <button id="remover-fundo" class="btn btn-danger">Remover Fundo</button>
+        </div>
+    </div>  
+    
+    <!-- Modal para adicionar imagens decorativas -->
+    <div id="decoracao-modal" class="modal">
+        <div class="modal-content">
+            <span class="fechar-modal-decoracao">&times;</span>
+            <h2>Adicionar Imagem Decorativa</h2>
+            <div class="form-group">
+                <label for="url-decoracao">URL da Imagem:</label>
+                <input type="url" id="url-decoracao" placeholder="https://exemplo.com/imagem.png">
+                <div class="preview-imagem">
+                    <img id="preview-decoracao" src="" alt="Preview da imagem" style="display: none; max-width: 150px;">
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="largura-decoracao">Largura (px):</label>
+                <input type="number" id="largura-decoracao" min="20" max="500" value="150">
+            </div>
+            <div class="form-group">
+                <label for="altura-decoracao">Altura (px):</label>
+                <input type="number" id="altura-decoracao" min="20" max="500" value="150">
+            </div>
+            <div class="form-group">
+                <label for="opacidade-decoracao">Opacidade:</label>
+                <input type="range" id="opacidade-decoracao" min="0.1" max="1" step="0.1" value="1">
+                <span id="valor-opacidade-decoracao">100%</span>
+            </div>
+            <div class="form-group">
+                <label for="tipo-decoracao">Tipo de Decoração:</label>
+                <select id="tipo-decoracao">
+                    <option value="logomarca">Logomarca</option>
+                    <option value="comemorativo">Tema Comemorativo</option>
+                    <option value="outro">Outro</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="cor-fundo-decoracao">Cor do Fundo:</label>
+                <div class="color-options">
+                    <input type="color" id="cor-fundo-decoracao" value="#FFFFFF">
+                    <div class="checkbox-container">
+                        <input type="checkbox" id="fundo-transparente-decoracao" checked>
+                        <label for="fundo-transparente-decoracao">Transparente</label>
+                    </div>
+                </div>
+            </div>
+            <button id="adicionar-imagem-decorativa" class="btn btn-save">Adicionar Imagem</button>
+        </div>
+    </div>  
+    
+    <!-- Modal para Informações -->
+    <div id="info-modal" class="modal">
+        <div class="modal-content modal-info">
+            <h2>Como Usar o Sistema de Encarte</h2>
+            
+            <div class="info-content">
+                <h3>Passo a Passo</h3>
+                
+                <div class="info-step">
+                    <div class="step-number">1</div>
+                    <div class="step-content">
+                        <h4>Defina o Fundo</h4>
+                        <p>Clique em "Definir Fundo" para adicionar uma imagem de fundo ao seu encarte. Você pode ajustar a opacidade e o modo de exibição.</p>
+                    </div>
+                </div>
+                
+                <div class="info-step">
+                    <div class="step-number">2</div>
+                    <div class="step-content">
+                        <h4>Adicione Produtos</h4>
+                        <p>Clique em "Adicionar Produto" para inserir itens no seu encarte. Forneça a URL da imagem, nome, preço e uma descrição curta.</p>
+                        <p>Você pode personalizar a fonte, cor do texto, alinhamento e fundo de cada produto.</p>
+                    </div>
+                </div>
+                
+                <div class="info-step">
+                    <div class="step-number">3</div>
+                    <div class="step-content">
+                        <h4>Organize seu Encarte</h4>
+                        <p>Arraste e solte os produtos para posicioná-los onde desejar na página.</p>
+                        <p>Adicione elementos decorativos como logomarcas e elementos comemorativos com o botão "Adicionar Decoração".</p>
+                    </div>
+                </div>
+                
+                <div class="info-step">
+                    <div class="step-number">4</div>
+                    <div class="step-content">
+                        <h4>Gere o PDF</h4>
+                        <p>Quando terminar, clique em "Gerar PDF" para criar uma versão do seu encarte pronta para impressão ou compartilhamento digital.</p>
+                    </div>
+                </div>
+                
+                <div class="info-box">
+                    <h3>Dicas Importantes</h3>
+                    <ul>
+                        <li>Para hospedar suas imagens, recomendamos usar o site <a href="https://postimages.org/" target="_blank">https://postimages.org/</a></li>
+                        <li>Após fazer upload da imagem, copie o "Direct Link" e use-o no sistema</li>
+                        <li>Para melhor qualidade, use imagens com fundo transparente (PNG)</li>
+                        <li>Desenvolvido por: <a href="https://www.linkedin.com/in/joao-igor-pinheiro-tavares-866383246/" target="_blank">João Igor Pinheiro Tavares (LinkedIn)</a></li>
+                    </ul>
+                </div>
+                
+                <div class="info-disclaimer">
+                    <p>As imagens usadas nos exemplos foram obtidas da internet e hospedadas no <a href="https://postimages.org/" target="_blank">PostImages</a> apenas para fins demonstrativos.</p>
+                </div>
+            </div>
+            
+            <button id="fechar-info" class="btn btn-danger">Fechar</button>
+        </div>
+    </div>
+    
+    <!-- Scripts corretamente formatados -->
+    <script src="js/pdf-generator.js"></script>
+    <script src="js/script.js"></script>
+    <script src="js/mobile.js"></script> <!-- Novo JS para mobile -->
+    <script src="js/validation.js"></script>
+    <script src="js/diagnostico.js"></script>
+    
+    <!-- Removendo o script que adiciona o botão de recarga -->
+</body>
+</html>
+
