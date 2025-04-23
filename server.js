@@ -83,8 +83,15 @@ async function getPuppeteer() {
     }
 }
 
+// Rota de teste simples
+app.get('/api/test', (req, res) => {
+  console.log('✅ Rota /api/test acionada');
+  res.status(200).json({ message: 'API está funcionando!' });
+});
+
 // Rota para gerar PDF - Modificada para compatibilidade com Vercel
 app.post('/gerar-pdf', async (req, res) => {
+  console.log('📄 Rota /gerar-pdf ACIONADA!'); // Log adicionado aqui
   console.log('📄 Iniciando geração do PDF...');
   let browser;
   
