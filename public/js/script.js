@@ -1022,57 +1022,103 @@ document.addEventListener('DOMContentLoaded', function() {
             </div>`;
         }).join('');
         
-        // Usar a função específica para gerar o conteúdo do PDF 
-        // (importada do arquivo pdf-generator.js)
+        // Usar a função específica para gerar o conteúdo do PDF
         const conteudo = prepararConteudoPDF(decoracoesHTML, produtosHTML, fundoAtual);
         
-        // Enviar para o servidor para gerar PDF
-        fetch('/gerar-pdf', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ conteudo })
-        })
-        .then(response => {
-            if (response.ok) {
+        // Verificar se estamos em um ambiente hospedado (como Vercel)
+        const isHosted = window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1';
+        
+        // Se for ambiente hospedado, tentar o método de servidor, mas ter fallback para método do navegador
+        if (isHosted) {
+            // Primeiro tentar o método do servidor
+            fetch('/gerar-pdf', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ conteudo })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Erro no servidor');
+                }
                 return response.blob();
-            }
-            throw new Error('Erro ao gerar PDF');
-        })
-        .then(blob => {
-            // Criar URL para o blob e abrir em nova janela
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = 'encarte.pdf';
-            a.click();
-            window.URL.revokeObjectURL(url);
-            
-            // Restaurar os botões de controle
+            })
+            .then(blob => {
+                // Criar URL para o blob e abrir em nova janela
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'encarte.pdf';
+                a.click();
+                window.URL.revokeObjectURL(url);
+                
+                // Restaurar os botões de controle
+                restaurarControles();
+            })
+            .catch(error => {
+                console.error('Erro ao gerar PDF no servidor:', error);
+                
+                // Tentar o método alternativo do navegador
+                const alternativaFuncionou = imprimirEncarteNoNavegador(decoracoesHTML, produtosHTML, fundoAtual);
+                
+                if (!alternativaFuncionou) {
+                    // Se também falhar, mostrar mensagem explicativa
+                    alert('Não foi possível gerar o PDF automaticamente. Você pode tentar imprimir a página (Ctrl+P ou ⌘+P) e salvar como PDF.');
+                }
+                
+                // Restaurar os botões de controle
+                restaurarControles();
+            });
+        } else {
+            // Em ambiente local, usar o método padrão do servidor
+            fetch('/gerar-pdf', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ conteudo })
+            })
+            .then(response => {
+                if (response.ok) {
+                    return response.blob();
+                }
+                throw new Error('Erro ao gerar PDF');
+            })
+            .then(blob => {
+                // Criar URL para o blob e abrir em nova janela
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'encarte.pdf';
+                a.click();
+                window.URL.revokeObjectURL(url);
+                
+                // Restaurar os botões de controle
+                restaurarControles();
+            })
+            .catch(error => {
+                console.error('Erro:', error);
+                alert('Ocorreu um erro ao gerar o PDF. Por favor, tente novamente.');
+                
+                // Restaurar os botões de controle
+                restaurarControles();
+            });
+        }
+        
+        // Função para restaurar os controles
+        function restaurarControles() {
             botoesControleProduto.forEach(botao => botao.style.display = 'flex');
             botoesControleDecoracao.forEach(botao => botao.style.display = 'block');
             
             // Restaurar os indicadores de posição
             positionInfos.forEach(info => info.style.display = 'block');
-        })
-        .catch(error => {
-            console.error('Erro:', error);
-            alert('Ocorreu um erro ao gerar o PDF. Por favor, tente novamente.');
             
-            // Restaurar os botões de controle mesmo em caso de erro
-            botoesControleProduto.forEach(botao => botao.style.display = 'flex');
-            botoesControleDecoracao.forEach(botao => botao.style.display = 'block');
-            
-            // Restaurar os indicadores de posição
-            positionInfos.forEach(info => info.style.display = 'block');
-        })
-        .finally(() => {
-            // Reativar o botão independentemente do resultado (sucesso ou falha)
+            // Reativar o botão
             btnGerarPDF.disabled = false;
             btnGerarPDF.textContent = 'Gerar PDF';
             btnGerarPDF.style.cursor = 'pointer';
-        });
+        }
     });
     
     // Recalcular dimensões do encarte quando a janela for redimensionada

@@ -4,17 +4,6 @@ const path = require('path');
 const cors = require('cors');
 const fs = require('fs');
 
-// Verificar se o Puppeteer está instalado
-let puppeteer;
-try {
-    puppeteer = require('puppeteer');
-    console.log('✅ Puppeteer carregado com sucesso');
-} catch (error) {
-    console.error('❌ Erro ao carregar Puppeteer:', error.message);
-    console.log('Por favor, execute: npm install puppeteer');
-    process.exit(1);
-}
-
 const app = express();
 const PORT = process.env.PORT || 3000;
 
@@ -63,33 +52,65 @@ app.get('/', (req, res) => {
     });
 });
 
-// Rota para gerar PDF com puppeteer
+// Função para inicializar Puppeteer apenas quando necessário (lazy loading)
+async function getPuppeteer() {
+    const puppeteer = require('puppeteer-core');
+    
+    // Detectar ambiente Vercel
+    const isVercel = process.env.VERCEL === '1';
+    
+    let browser;
+    try {
+        if (isVercel) {
+            // Em produção/Vercel, use chrome-aws-lambda
+            const chromium = require('chrome-aws-lambda');
+            browser = await puppeteer.launch({
+                args: chromium.args,
+                executablePath: await chromium.executablePath,
+                headless: chromium.headless,
+            });
+        } else {
+            // Em ambiente local, use configurações padrão
+            browser = await puppeteer.launch({
+                headless: "new",
+                args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage']
+            });
+        }
+        return { puppeteer, browser };
+    } catch (error) {
+        console.error("Erro ao inicializar Puppeteer:", error);
+        throw error;
+    }
+}
+
+// Rota para gerar PDF - Modificada para compatibilidade com Vercel
 app.post('/gerar-pdf', async (req, res) => {
   console.log('📄 Iniciando geração do PDF...');
+  let browser;
   
   try {
     const conteudo = req.body.conteudo;
     
-    // Usar sistema de arquivo temporário para salvar o HTML
-    const tempHtmlPath = path.join(__dirname, 'temp_pdf.html');
-    console.log(`💾 Salvando HTML temporário em: ${tempHtmlPath}`);
-    fs.writeFileSync(tempHtmlPath, conteudo);
-
-    console.log('🌐 Iniciando navegador Chrome headless...');
-    // Iniciar o navegador com opções otimizadas
-    const browser = await puppeteer.launch({
-      headless: "new", // Usar a nova versão do headless
-      args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage']
-    });
+    // Usar memória em vez de arquivo temporário
+    console.log('🌐 Inicializando Puppeteer...');
+    
+    // Tentar carregar puppeteer-core e chrome-aws-lambda primeiro (para Vercel)
+    try {
+        const { puppeteer, browser: initializedBrowser } = await getPuppeteer();
+        browser = initializedBrowser;
+    } catch (error) {
+        console.error('❌ Erro ao inicializar Puppeteer:', error);
+        return res.status(500).json({ error: 'Erro ao inicializar gerador de PDF' });
+    }
 
     console.log('📃 Criando nova página...');
     const page = await browser.newPage();
     
-    // Navegar para o arquivo HTML temporário
-    console.log('🔍 Carregando conteúdo HTML...');
-    await page.goto(`file://${tempHtmlPath}`, {
+    // Usar conteúdo diretamente em vez de arquivo
+    console.log('🔍 Definindo conteúdo HTML...');
+    await page.setContent(conteudo, {
       waitUntil: 'networkidle0',
-      timeout: 60000 // 60 segundos de timeout, mais do que o padrão
+      timeout: 30000 // 30 segundos de timeout (reduzido para ambiente serverless)
     });
 
     // Configurar o tamanho da página para A4
@@ -112,12 +133,7 @@ app.post('/gerar-pdf', async (req, res) => {
     // Fechar o navegador
     console.log('🔒 Fechando navegador...');
     await browser.close();
-
-    // Excluir o arquivo temporário
-    if (fs.existsSync(tempHtmlPath)) {
-      console.log('🗑️ Excluindo arquivo HTML temporário...');
-      fs.unlinkSync(tempHtmlPath);
-    }
+    browser = null;
 
     console.log('✅ PDF gerado com sucesso!');
     
@@ -127,20 +143,34 @@ app.post('/gerar-pdf', async (req, res) => {
     
   } catch (err) {
     console.error("❌ Erro ao gerar PDF:", err);
+    // Tentar fechar o navegador em caso de erro
+    if (browser) {
+      try {
+        await browser.close();
+      } catch (closeErr) {
+        console.error("Erro ao fechar navegador:", closeErr);
+      }
+    }
     res.status(500).json({ error: 'Erro ao gerar PDF: ' + err.message });
   }
 });
 
-app.listen(PORT, () => {
-  console.log(`
-  =============================================
-   Meu Encarte - Servidor rodando na porta ${PORT}
-  =============================================
-   - Acesse: http://localhost:${PORT}
-   - Pressione Ctrl+C para encerrar
-  =============================================
-  `);
-});
+// Verificar se o script está sendo executado diretamente (não como import/require)
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`
+    =============================================
+     Meu Encarte - Servidor rodando na porta ${PORT}
+    =============================================
+     - Acesse: http://localhost:${PORT}
+     - Pressione Ctrl+C para encerrar
+    =============================================
+    `);
+  });
+}
+
+// Para compatibilidade com Vercel, também exportamos a aplicação
+module.exports = app;
 
 // Tratamento de erros não capturados
 process.on('uncaughtException', (error) => {

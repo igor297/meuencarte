@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Geração de PDF - MeuEncarte</title>
+    <style>
+        body {
+            font-family: 'Roboto', Arial, sans-serif;
+            line-height: 1.6;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            color: #333;
+        }
+        
+        .container {
+            background-color: #f9f9f9;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        h1 {
+            color: #0066cc;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .method {
+            background-color: #fff;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        
+        .method h2 {
+            color: #0066cc;
+            margin-top: 0;
+        }
+        
+        .btn {
+            display: inline-block;
+            background-color: #0066cc;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            text-decoration: none;
+            margin-top: 10px;
+            cursor: pointer;
+        }
+        
+        .btn:hover {
+            background-color: #0052a3;
+        }
+        
+        .note {
+            background-color: #fff8e1;
+            border-left: 4px solid #ffb300;
+            padding: 15px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Geração de PDF - MeuEncarte</h1>
+        
+        <div class="note">
+            <p><strong>⚠️ Importante:</strong> A geração de PDF diretamente no servidor hospedado pode não funcionar devido às limitações do ambiente serverless.</p>
+        </div>
+        
+        <div class="method">
+            <h2>Método 1: Imprimir pelo navegador</h2>
+            <p>A forma mais simples de gerar um PDF do seu encarte:</p>
+            <ol>
+                <li>Use o comando de impressão do seu navegador (Ctrl+P ou ⌘+P)</li>
+                <li>Selecione "Salvar como PDF" como destino</li>
+                <li>Ajuste as configurações de impressão (sem margens, tamanho A4)</li>
+                <li>Clique em "Salvar" ou "Imprimir"</li>
+            </ol>
+            <button class="btn" onclick="window.print()">Imprimir esta página</button>
+        </div>
+        
+        <div class="method">
+            <h2>Método 2: Usar versão local</h2>
+            <p>Para acesso completo a todas as funcionalidades, incluindo geração de PDF:</p>
+            <ol>
+                <li>Clone o repositório do GitHub</li>
+                <li>Execute o projeto localmente em seu computador</li>
+                <li>Use a função de geração de PDF na versão local</li>
+            </ol>
+            <a href="https://github.com/igor297/meuencarte" class="btn" target="_blank">Ver no GitHub</a>
+        </div>
+        
+        <div class="note">
+            <p><strong>💡 Dica:</strong> Se você estiver trabalhando em um projeto importante, recomendamos a execução local para acesso a todas as funcionalidades.</p>
+        </div>
+        
+        <p style="text-align: center; margin-top: 30px;">
+            <a href="/" class="btn">Voltar para o Editor</a>
+        </p>
+    </div>
+</body>
+</html>

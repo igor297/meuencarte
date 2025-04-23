@@ -11,19 +11,14 @@ document.addEventListener('DOMContentLoaded', function() {
     
     console.log('MeuEncarte Mobile iniciado');
     
-    // Criar elementos da interface mobile
+    // Criar apenas o menu hamburger
     criarInterfaceMobile();
     
     // Referências aos elementos principais
-    const navBar = document.querySelector('.mobile-nav');
-    const fab = document.querySelector('.fab');
-    const fabMenu = document.querySelector('.fab-menu');
-    const loadingScreen = document.querySelector('.loading-screen');
-    
-    // Elementos do modal índice
     const indexButton = document.querySelector('.mobile-index-button');
     const indexModal = document.querySelector('.mobile-index-modal');
     const indexClose = document.querySelector('.mobile-index-close');
+    const loadingScreen = document.querySelector('.loading-screen');
     
     // Event listeners para touch
     document.addEventListener('touchstart', iniciarTouch);
@@ -64,34 +59,6 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         });
     }
-    
-    // Controle do FAB (Floating Action Button)
-    fab.addEventListener('click', function() {
-        fab.classList.toggle('active');
-        fabMenu.classList.toggle('active');
-    });
-    
-    // Clicar fora do FAB menu fecha ele
-    document.addEventListener('click', function(e) {
-        if (!fab.contains(e.target) && !fabMenu.contains(e.target) && fabMenu.classList.contains('active')) {
-            fab.classList.remove('active');
-            fabMenu.classList.remove('active');
-        }
-    });
-    
-    // Event listeners para botões do FAB menu
-    document.querySelectorAll('.fab-item').forEach(item => {
-        item.addEventListener('click', function() {
-            const action = this.getAttribute('data-action');
-            
-            // Fechar o menu após ação
-            fab.classList.remove('active');
-            fabMenu.classList.remove('active');
-            
-            // Executar ação
-            executarAcao(action);
-        });
-    });
     
     // Função centralizada para executar ações
     function executarAcao(action) {
@@ -175,7 +142,7 @@ document.addEventListener('DOMContentLoaded', function() {
         loadingScreen.classList.remove('active');
     }
     
-    // Criar elementos da interface mobile
+    // Criar apenas o botão de menu hamburger e o modal de índice
     function criarInterfaceMobile() {
         // Criar botão de índice
         const indexButton = document.createElement('button');
@@ -232,44 +199,6 @@ document.addEventListener('DOMContentLoaded', function() {
             </div>
         `;
         
-        // Criar navigation bar
-        const navBar = document.createElement('nav');
-        navBar.className = 'mobile-nav';
-        navBar.innerHTML = `
-            <a href="#" class="mobile-nav-button active" data-page="editor">
-                <span class="mobile-nav-icon">📝</span>
-                <span>Editor</span>
-            </a>
-            <a href="#" class="mobile-nav-button" data-page="preview">
-                <span class="mobile-nav-icon">👁️</span>
-                <span>Visualizar</span>
-            </a>
-            <a href="#" class="mobile-nav-button" data-page="export">
-                <span class="mobile-nav-icon">📤</span>
-                <span>Exportar</span>
-            </a>
-        `;
-        
-        // Criar Floating Action Button (FAB)
-        const fab = document.createElement('div');
-        fab.className = 'fab';
-        fab.innerHTML = '+';
-        
-        // Criar menu do FAB
-        const fabMenu = document.createElement('div');
-        fabMenu.className = 'fab-menu';
-        fabMenu.innerHTML = `
-            <div class="fab-item" data-action="add-produto">
-                <span>Adicionar Produto</span>
-            </div>
-            <div class="fab-item" data-action="add-fundo">
-                <span>Definir Fundo</span>
-            </div>
-            <div class="fab-item" data-action="add-decoracao">
-                <span>Adicionar Decoração</span>
-            </div>
-        `;
-        
         // Criar tela de carregamento
         const loadingScreen = document.createElement('div');
         loadingScreen.className = 'loading-screen';
@@ -278,45 +207,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Adicionar elementos ao DOM
         document.body.appendChild(indexButton);
         document.body.appendChild(indexModal);
-        document.body.appendChild(navBar);
-        document.body.appendChild(fab);
-        document.body.appendChild(fabMenu);
         document.body.appendChild(loadingScreen);
-        
-        // Adicionar eventos aos botões de navegação
-        navBar.querySelectorAll('.mobile-nav-button').forEach(button => {
-            button.addEventListener('click', function(e) {
-                e.preventDefault();
-                const page = this.getAttribute('data-page');
-                
-                // Remover classe active de todos os botões
-                navBar.querySelectorAll('.mobile-nav-button').forEach(btn => {
-                    btn.classList.remove('active');
-                });
-                
-                // Adicionar classe active ao botão clicado
-                this.classList.add('active');
-                
-                // Lidar com a navegação
-                handleNavigation(page);
-            });
-        });
-    }
-    
-    // Lidar com a navegação entre "páginas"
-    function handleNavigation(page) {
-        switch(page) {
-            case 'editor':
-                // Mostrar editor
-                break;
-            case 'preview':
-                // Mostrar visualização
-                break;
-            case 'export':
-                // Mostrar opções de exportação
-                document.getElementById('gerar-pdf').click();
-                break;
-        }
     }
     
     // Mostrar tela de carregamento no início
