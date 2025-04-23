@@ -1406,4 +1406,41 @@ document.addEventListener('DOMContentLoaded', function() {
     if (nomeProdutoInput) {
         nomeProdutoInput.addEventListener('input', atualizarContadorNome);
     }
+
+    // Definir timestamp da versão no rodapé
+    const versionSpan = document.getElementById('app-version');
+    if (versionSpan) {
+        // Usar um timestamp simples como indicador de build/deploy
+        const buildTimestamp = new Date().toISOString(); // Ou use um valor fixo se preferir
+        versionSpan.textContent = `Build: ${buildTimestamp}`;
+    }
+
+    // Abrir modal para adicionar produto
+    if (btnAdicionarProduto) {
+        btnAdicionarProduto.addEventListener('click', function() {
+            console.log("Botão 'Adicionar Produto' clicado."); // Log adicionado
+            if (!modal) {
+                console.error("ERRO: Modal de produto não encontrado!");
+                return;
+            }
+            console.log("Modal de produto encontrado, tentando abrir..."); // Log adicionado
+            limparFormulario();
+            produtoEmEdicao = null;
+            document.querySelector('#produto-modal .modal-content h2').textContent = 'Adicionar Produto';
+            modal.style.display = 'block';
+            document.body.style.overflow = 'hidden'; // Impedir rolagem do conteúdo por trás do modal
+
+            const previewCard = document.querySelector('#produto-modal .modal-content .produto-card-preview');
+            if (previewCard) { // Verificar se previewCard existe
+                previewCard.style.backgroundColor = document.getElementById('fundo-transparente-produto').checked
+                    ? 'transparent'
+                    : document.getElementById('cor-fundo-produto').value;
+            } else {
+                console.warn("Preview do card não encontrado no modal de produto.");
+            }
+            console.log("Modal de produto aberto."); // Log adicionado
+        });
+    } else {
+        console.error("ERRO: Botão 'Adicionar Produto' não encontrado no DOM.");
+    }
 });

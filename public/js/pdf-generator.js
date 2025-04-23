@@ -281,31 +281,6 @@ function imprimirEncarteNoNavegador(decoracoesHTML, produtosHTML, fundoAtual) {
                     display: none !important;
                 }
                 
-                .print-instructions {
-                    position: fixed;
-                    top: 10px;
-                    left: 10px;
-                    right: 10px;
-                    background-color: rgba(0, 102, 204, 0.9);
-                    color: white;
-                    padding: 15px;
-                    border-radius: 5px;
-                    text-align: center;
-                    box-shadow: 0 2px 10px rgba(0,0,0,0.2);
-                    z-index: 9999;
-                }
-                
-                .print-instructions button {
-                    background-color: white;
-                    color: #0066cc;
-                    border: none;
-                    padding: 8px 16px;
-                    border-radius: 4px;
-                    margin-top: 10px;
-                    cursor: pointer;
-                    font-weight: bold;
-                }
-                
                 @media print {
                     .print-instructions {
                         display: none;
@@ -314,11 +289,6 @@ function imprimirEncarteNoNavegador(decoracoesHTML, produtosHTML, fundoAtual) {
             </style>
         </head>
         <body>
-            <div class="print-instructions">
-                Para obter o PDF, pressione Ctrl+P (ou ⌘+P no Mac) e selecione "Salvar como PDF". 
-                <br>Escolha configuração "Sem margens" para melhor resultado.
-                <br><button onclick="window.print()">Imprimir Agora</button>
-            </div>
             <div class="a4-page">
                 ${decoracoesHTML}
                 ${produtosHTML}
@@ -332,10 +302,19 @@ function imprimirEncarteNoNavegador(decoracoesHTML, produtosHTML, fundoAtual) {
     printWindow.document.write(html);
     printWindow.document.close();
     
-    // Dar tempo para os recursos carregarem antes de imprimir
-    printWindow.setTimeout(() => {
-        printWindow.focus();
-    }, 300);
+    // Dar tempo para os recursos carregarem e chamar a impressão da janela principal
+    printWindow.onload = function() { // Esperar o carregamento completo da nova janela
+        setTimeout(() => {
+            try {
+                printWindow.focus(); // Focar na janela
+                printWindow.print(); // Chamar a impressão
+                // printWindow.close(); // Opcional: fechar a janela após a impressão (pode ser bloqueado)
+            } catch (e) {
+                console.error("Erro ao tentar imprimir:", e);
+                alert("Não foi possível iniciar a impressão automaticamente. Por favor, use Ctrl+P na janela que abriu.");
+            }
+        }, 500); // Atraso de 500ms para garantir carregamento
+    };
     
     return true;
 }
