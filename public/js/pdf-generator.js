@@ -156,8 +156,12 @@ function imprimirEncarteNoNavegador(decoracoesHTML, produtosHTML, fundoAtual) {
         alert("O bloqueador de pop-ups impediu a abertura da janela de impressão. Por favor, permita pop-ups para este site.");
         return false;
     }
-    
-    // HTML melhorado com mais estilos específicos para print
+
+    // Adiciona crossorigin="anonymous" em todas as imagens
+    function addCrossorigin(html) {
+        return html.replace(/<img /g, '<img crossorigin="anonymous" ');
+    }
+
     const html = `
         <!DOCTYPE html>
         <html>
@@ -269,8 +273,8 @@ function imprimirEncarteNoNavegador(decoracoesHTML, produtosHTML, fundoAtual) {
             </div>
             
             <div class="a4-page">
-                ${decoracoesHTML}
-                ${produtosHTML}
+                ${addCrossorigin(decoracoesHTML)}
+                ${addCrossorigin(produtosHTML)}
             </div>
             
             <script>
