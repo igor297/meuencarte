@@ -1038,9 +1038,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 },
                 body: JSON.stringify({ conteudo })
             })
-            .then(response => {
+            .then(async response => {
                 if (!response.ok) {
-                    throw new Error('Erro no servidor');
+                    throw new Error("Erro ao gerar PDF - Status: " + response.status);
                 }
                 return response.blob();
             })

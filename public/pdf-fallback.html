@@ -80,7 +80,7 @@
                 <li>Ajuste as configurações de impressão (sem margens, tamanho A4)</li>
                 <li>Clique em "Salvar" ou "Imprimir"</li>
             </ol>
-            <button class="btn" onclick="window.print()">Imprimir esta página</button>
+            <button class="btn" onclick="imprimirPagina()">Imprimir esta página</button>
         </div>
         
         <div class="method">
@@ -102,5 +102,11 @@
             <a href="/" class="btn">Voltar para o Editor</a>
         </p>
     </div>
+    <script>
+        function imprimirPagina() {
+            console.log("Iniciando impressão...");
+            window.print();
+        }
+    </script>
 </body>
 </html>
