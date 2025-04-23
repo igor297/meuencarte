@@ -1,29 +1,71 @@
 @page {
     size: A4;
-    margin: 0;
+    margin: 0; /* Remover margens da página */
 }
 
-body {
+html, body {
     width: 210mm;
     height: 297mm;
     margin: 0;
     padding: 0;
-    overflow: hidden;
-    position: relative;
+    box-sizing: border-box;
+    -webkit-print-color-adjust: exact !important; /* Forçar impressão de cores/fundos */
+    print-color-adjust: exact !important;
 }
 
 .a4-page {
     width: 210mm;
     height: 297mm;
     box-sizing: border-box;
-    position: relative;
-    page-break-after: avoid;
-    page-break-inside: avoid;
-    overflow: hidden;
+    position: relative; /* Necessário para elementos filhos absolutos */
+    overflow: hidden; /* Evitar conteúdo transbordando */
+    padding: 5mm; /* Adicionar um pequeno padding interno se desejado */
+    background-color: white; /* Fundo padrão caso não haja imagem */
 }
 
-/* Evitar quebras de página dentro dos elementos */
+/* Garantir que os cards e decorações mantenham suas posições */
 .produto-card, .decoracao-imagem {
-    page-break-inside: avoid;
+    position: absolute !important; /* Crucial para manter o layout */
+    page-break-inside: avoid; /* Tentar evitar quebras dentro dos elementos */
     break-inside: avoid;
+    border: none !important; /* Remover bordas na impressão */
+    box-shadow: none !important; /* Remover sombras na impressão */
+}
+
+/* Garantir que as imagens dentro dos cards/decorações sejam visíveis */
+.produto-imagem img, .decoracao-imagem img {
+    display: block !important; /* Garantir que a imagem seja exibida */
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+}
+
+/* Estilos de texto (ajuste fontes/tamanhos conforme necessário) */
+.produto-info {
+    /* Herda a fonte do card ou define uma padrão */
+}
+.produto-nome {
+    /* Estilos específicos para nome */
+    font-weight: bold;
+}
+.produto-descricao {
+    /* Estilos específicos para descrição */
+    font-size: 14px; /* Exemplo */
+    color: #333; /* Garantir cor visível */
+}
+.produto-preco {
+    /* Estilos específicos para preço */
+    font-weight: bold;
+    font-size: 18px; /* Exemplo */
+    color: #000; /* Garantir cor visível */
+}
+
+/* Ocultar elementos interativos/desnecessários */
+.produto-controles, .decoracao-controles, .position-info, .mobile-index-button, #app-version {
+    display: none !important;
+}
+
+/* Ajustes específicos para cards transparentes */
+.produto-card.transparente, .decoracao-imagem.transparente {
+    background-color: transparent !important;
 }

@@ -10,28 +10,22 @@
     }
   ],
   "routes": [
-    // Rotas específicas primeiro
     {
-      "src": "/api/test", // Rota de teste
+      "src": "/api/(.*)",
       "dest": "server.js"
     },
     {
-      "src": "/gerar-pdf", // Rota do PDF
-      "methods": ["POST"], // Especificar método POST
+      "src": "/gerar-pdf",
+      "methods": ["POST"],
       "dest": "server.js"
     },
-    // Servir arquivos estáticos diretamente (se possível, senão deixar Express lidar)
-    // {
-    //   "src": "/(.*\\.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot))",
-    //   "dest": "/public/$1"
-    // },
-    // Rota principal e outras não mapeadas (deixar Express lidar)
     {
       "src": "/(.*)",
       "dest": "server.js"
     }
   ],
   "env": {
-    "NODE_ENV": "production"
+    "NODE_ENV": "production",
+    "VERCEL": "1"
   }
 }

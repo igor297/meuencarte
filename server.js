@@ -179,6 +179,18 @@ if (require.main === module) {
 // Para compatibilidade com Vercel, também exportamos a aplicação
 module.exports = app;
 
+// Adicione um handler específico para serverless
+if (process.env.VERCEL) {
+  // Exportar um handler serverless
+  module.exports = (req, res) => {
+    // Verifique se req.url tem a rota correta
+    console.log(`[Vercel Handler] Recebendo requisição para: ${req.url}, método: ${req.method}`);
+    
+    // Manter compatibilidade com o Express padrão
+    return app(req, res);
+  };
+}
+
 // Tratamento de erros não capturados
 process.on('uncaughtException', (error) => {
   console.error('❌ Erro não tratado:', error);

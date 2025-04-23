@@ -975,148 +975,136 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Gerar PDF do encarte
     btnGerarPDF.addEventListener('click', function() {
-        // Desabilitar o botão temporariamente para evitar múltiplos cliques simultâneos
+        // Desabilitar o botão temporariamente
         btnGerarPDF.disabled = true;
-        btnGerarPDF.textContent = 'Gerando PDF...';
+        btnGerarPDF.textContent = 'Preparando Impressão...'; // Mudar texto
         btnGerarPDF.style.cursor = 'wait';
 
-        // Remover temporariamente os botões de edição e remoção para o PDF
+        // Remover temporariamente os controles visuais
         const botoesControleProduto = document.querySelectorAll('.produto-controles');
         const botoesControleDecoracao = document.querySelectorAll('.decoracao-controles');
+        const positionInfos = document.querySelectorAll('.position-info');
         botoesControleProduto.forEach(botao => botao.style.display = 'none');
         botoesControleDecoracao.forEach(botao => botao.style.display = 'none');
-        
-        // Esconder também os indicadores de posição
-        const positionInfos = document.querySelectorAll('.position-info');
         positionInfos.forEach(info => info.style.display = 'none');
         
-        // Capturar posições e estilos atuais de todos os cards de produtos
+        // Capturar HTML dos produtos e decorações (como antes)
         const produtos = document.querySelectorAll('.produto-card');
         const produtosHTML = Array.from(produtos).map(card => {
+            // ... (código existente para gerar produtosHTML) ...
+            // Garantir que os estilos inline corretos sejam capturados
             const left = card.style.left;
             const top = card.style.top;
-            const html = card.innerHTML;
-            const fundoTransparente = card.classList.contains('transparente');
-            const corFundo = card.style.backgroundColor || 'white';
+            const width = card.style.width; // Capturar largura se necessário
+            const height = card.style.height; // Capturar altura se necessário
+            const bgColor = card.style.backgroundColor;
+            const isTransparent = card.classList.contains('transparente');
             
-            // Remover estilo de borda para o PDF
-            return `<div class="produto-card${fundoTransparente ? ' transparente' : ''}" style="left: ${left}; top: ${top}; ${!fundoTransparente ? 'background-color: ' + corFundo + ';' : ''}">${html}</div>`;
+            // Clonar o card para não modificar o original diretamente ao remover controles
+            const cardClone = card.cloneNode(true);
+            cardClone.querySelectorAll('.produto-controles, .position-info').forEach(el => el.remove());
+            
+            let style = `position: absolute; left: ${left}; top: ${top}; width: ${width}; height: ${height};`;
+            if (!isTransparent) {
+                style += ` background-color: ${bgColor || 'white'};`;
+            } else {
+                 style += ` background-color: transparent;`;
+            }
+
+            // Adicionar estilos de texto e alinhamento diretamente se necessário
+            // (O ideal é que pdf-styles.css cuide disso, mas como fallback)
+            const nomeEl = card.querySelector('.produto-nome');
+            const descEl = card.querySelector('.produto-descricao');
+            const precoEl = card.querySelector('.produto-preco');
+            const infoEl = card.querySelector('.produto-info');
+            
+            style += ` font-family: ${infoEl.style.fontFamily || 'Arial'};`; // Exemplo
+
+            return `<div class="produto-card${isTransparent ? ' transparente' : ''}" style="${style}">${cardClone.innerHTML}</div>`;
         }).join('');
         
-        // Capturar posições e estilos atuais de todas as imagens decorativas
         const decoracoes = document.querySelectorAll('.decoracao-imagem');
         const decoracoesHTML = Array.from(decoracoes).map(dec => {
+            // ... (código existente para gerar decoracoesHTML) ...
             const left = dec.style.left;
             const top = dec.style.top;
             const width = dec.style.width;
             const height = dec.style.height;
             const opacity = dec.style.opacity;
-            const imgSrc = dec.querySelector('img').src;
-            const tipo = Array.from(dec.classList).find(cls => cls.startsWith('tipo-'));
-            const fundoTransparente = dec.classList.contains('transparente');
-            const corFundo = dec.style.backgroundColor || 'transparent';
+            const bgColor = dec.style.backgroundColor;
+            const isTransparent = dec.classList.contains('transparente');
             
-            // Remover estilo de borda para o PDF
-            return `<div class="decoracao-imagem ${tipo || ''}${fundoTransparente ? ' transparente' : ''}" style="left: ${left}; top: ${top}; width: ${width}; height: ${height}; opacity: ${opacity}; ${!fundoTransparente ? 'background-color: ' + corFundo + ';' : ''} border: none !important;">
-                <img src="${imgSrc}" alt="Decoração">
-            </div>`;
+            const decClone = dec.cloneNode(true);
+            decClone.querySelectorAll('.decoracao-controles, .position-info').forEach(el => el.remove());
+
+            let style = `position: absolute; left: ${left}; top: ${top}; width: ${width}; height: ${height}; opacity: ${opacity};`;
+             if (!isTransparent) {
+                style += ` background-color: ${bgColor || 'transparent'};`;
+            } else {
+                 style += ` background-color: transparent;`;
+            }
+
+            return `<div class="decoracao-imagem ${dec.className.replace('dragging','')}" style="${style}">${decClone.innerHTML}</div>`;
         }).join('');
-        
-        // Usar a função específica para gerar o conteúdo do PDF
-        const conteudo = prepararConteudoPDF(decoracoesHTML, produtosHTML, fundoAtual);
         
         // Verificar se estamos em um ambiente hospedado (como Vercel)
         const isHosted = window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1';
         
-        // Se for ambiente hospedado, tentar o método de servidor, mas ter fallback para método do navegador
+        // ALTERAÇÃO: SEMPRE usar impressão via navegador no ambiente Vercel/hospedado
+        // Sem tentar a rota /gerar-pdf no servidor que causa erro 404
         if (isHosted) {
-            // Primeiro tentar o método do servidor
-            fetch('/gerar-pdf', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ conteudo })
-            })
-            .then(async response => {
-                if (!response.ok) {
-                    throw new Error("Erro ao gerar PDF - Status: " + response.status);
-                }
-                return response.blob();
-            })
-            .then(blob => {
-                // Criar URL para o blob e abrir em nova janela
-                const url = window.URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = 'encarte.pdf';
-                a.click();
-                window.URL.revokeObjectURL(url);
-                
-                // Restaurar os botões de controle
-                restaurarControles();
-            })
-            .catch(error => {
-                console.error('Erro ao gerar PDF no servidor:', error);
-                
-                // Tentar o método alternativo do navegador
-                const alternativaFuncionou = imprimirEncarteNoNavegador(decoracoesHTML, produtosHTML, fundoAtual);
-                
-                if (!alternativaFuncionou) {
-                    // Se também falhar, mostrar mensagem explicativa
-                    alert('Não foi possível gerar o PDF automaticamente. Você pode tentar imprimir a página (Ctrl+P ou ⌘+P) e salvar como PDF.');
-                }
-                
-                // Restaurar os botões de controle
-                restaurarControles();
-            });
+            console.log("Ambiente hospedado detectado. Usando diretamente impressão via navegador.");
+            const impressaoIniciada = imprimirEncarteNoNavegador(decoracoesHTML, produtosHTML, fundoAtual);
+            
+            if (!impressaoIniciada) {
+                alert('Falha ao abrir a janela de impressão. Verifique se o bloqueador de pop-ups está desativado.');
+            }
+            // Restaurar controles independentemente do sucesso/falha da abertura da janela
+            restaurarControles();
+            
         } else {
-            // Em ambiente local, usar o método padrão do servidor
+            // Em ambiente local, tentar gerar PDF via servidor (como antes)
+            console.log("Ambiente local detectado. Tentando gerar PDF via servidor.");
+            const conteudo = prepararConteudoPDF(decoracoesHTML, produtosHTML, fundoAtual); // Usar a função original para gerar HTML completo
             fetch('/gerar-pdf', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ conteudo })
             })
             .then(response => {
-                if (response.ok) {
-                    return response.blob();
-                }
-                throw new Error('Erro ao gerar PDF');
+                if (response.ok) return response.blob();
+                throw new Error('Erro ao gerar PDF no servidor local.');
             })
             .then(blob => {
-                // Criar URL para o blob e abrir em nova janela
                 const url = window.URL.createObjectURL(blob);
                 const a = document.createElement('a');
                 a.href = url;
                 a.download = 'encarte.pdf';
                 a.click();
                 window.URL.revokeObjectURL(url);
-                
-                // Restaurar os botões de controle
                 restaurarControles();
             })
             .catch(error => {
-                console.error('Erro:', error);
-                alert('Ocorreu um erro ao gerar o PDF. Por favor, tente novamente.');
-                
-                // Restaurar os botões de controle
+                console.error('Erro no fetch local:', error);
+                alert('Erro ao gerar PDF localmente. Tentando impressão via navegador como fallback...');
+                // Fallback para impressão via navegador se o servidor local falhar
+                const impressaoIniciada = imprimirEncarteNoNavegador(decoracoesHTML, produtosHTML, fundoAtual);
+                 if (!impressaoIniciada) {
+                    alert('Falha ao abrir a janela de impressão. Verifique se o bloqueador de pop-ups está desativado.');
+                }
                 restaurarControles();
             });
         }
         
-        // Função para restaurar os controles
+        // Função para restaurar os controles visuais
         function restaurarControles() {
             botoesControleProduto.forEach(botao => botao.style.display = 'flex');
             botoesControleDecoracao.forEach(botao => botao.style.display = 'block');
-            
-            // Restaurar os indicadores de posição
             positionInfos.forEach(info => info.style.display = 'block');
             
             // Reativar o botão
             btnGerarPDF.disabled = false;
-            btnGerarPDF.textContent = 'Gerar PDF';
+            btnGerarPDF.textContent = 'Gerar PDF / Imprimir'; // Atualizar texto
             btnGerarPDF.style.cursor = 'pointer';
         }
     });

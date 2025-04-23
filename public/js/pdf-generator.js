@@ -148,16 +148,16 @@ function prepararConteudoPDF(decoracoesHTML, produtosHTML, fundoAtual) {
 
 /**
  * Alternativa para ambiente serverless (Vercel) onde o Puppeteer pode não funcionar
+ * Abre uma nova janela com o conteúdo e chama a impressão do navegador.
  */
 function imprimirEncarteNoNavegador(decoracoesHTML, produtosHTML, fundoAtual) {
-    // Criar uma nova janela para impressão
     const printWindow = window.open('', '_blank');
     if (!printWindow) {
         alert("O bloqueador de pop-ups impediu a abertura da janela de impressão. Por favor, permita pop-ups para este site.");
         return false;
     }
     
-    // Construir o HTML para impressão
+    // HTML melhorado com mais estilos específicos para print
     const html = `
         <!DOCTYPE html>
         <html>
@@ -170,13 +170,19 @@ function imprimirEncarteNoNavegador(decoracoesHTML, produtosHTML, fundoAtual) {
                     margin: 0;
                 }
                 
-                body {
+                html, body {
                     width: 210mm;
                     height: 297mm;
                     margin: 0;
                     padding: 0;
                     overflow: hidden;
-                    background-color: white;
+                }
+                
+                /* Forçar impressão de cores e imagens de fundo */
+                html, body, .a4-page {
+                    -webkit-print-color-adjust: exact !important;
+                    color-adjust: exact !important;
+                    print-color-adjust: exact !important;
                 }
                 
                 .a4-page {
@@ -185,7 +191,7 @@ function imprimirEncarteNoNavegador(decoracoesHTML, produtosHTML, fundoAtual) {
                     height: 297mm;
                     box-sizing: border-box;
                     padding: 5mm;
-                    overflow: hidden;
+                    background-color: white;
                     background-image: ${fundoAtual.url ? `url('${fundoAtual.url}')` : 'none'};
                     background-size: ${fundoAtual.modo === 'repeat' ? 'auto' : fundoAtual.modo};
                     background-repeat: ${fundoAtual.modo === 'repeat' ? 'repeat' : 'no-repeat'};
@@ -202,119 +208,91 @@ function imprimirEncarteNoNavegador(decoracoesHTML, produtosHTML, fundoAtual) {
                     background-color: white;
                     opacity: ${1 - fundoAtual.opacidade};
                     z-index: -1;
+                    pointer-events: none;
                 }
                 
-                .produto-card {
-                    width: 150px;
-                    height: 280px;
-                    border: none !important;
-                    border-radius: 0 !important;
-                    padding: 10px;
-                    display: flex;
-                    flex-direction: column;
-                    position: absolute;
-                    background-color: rgba(255, 255, 255, 0.9);
-                    box-sizing: border-box;
-                    z-index: 10;
+                /* Instruções impressas apenas na tela (não no PDF) */
+                .print-instructions {
+                    position: fixed;
+                    top: 10px;
+                    left: 10px;
+                    right: 10px;
+                    padding: 15px;
+                    background-color: #0066cc;
+                    color: white;
+                    border-radius: 5px;
+                    text-align: center;
+                    font-family: Arial, sans-serif;
+                    z-index: 9999;
+                    box-shadow: 0 3px 10px rgba(0,0,0,0.3);
+                }
+                
+                .print-instructions button {
+                    background-color: white;
+                    color: #0066cc;
+                    border: none;
+                    padding: 8px 20px;
+                    margin-top: 10px;
+                    border-radius: 4px;
+                    cursor: pointer;
+                    font-weight: bold;
+                }
+                
+                /* Na impressão, ocultar as instruções */
+                @media print {
+                    .print-instructions {
+                        display: none !important;
+                    }
+                    
+                    /* Forçar cores e fundos na impressão */
+                    * { print-color-adjust: exact !important; }
+                }
+                
+                /* Estilo para produtos e decorações */
+                .produto-card, .decoracao-imagem {
+                    position: absolute !important;
                     box-shadow: none !important;
                 }
                 
-                .produto-card.transparente {
-                    background-color: transparent !important;
-                    box-shadow: none;
-                }
-                
-                .produto-imagem {
-                    text-align: center;
-                    margin-bottom: 10px;
-                    height: 150px;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                }
-                
-                .produto-imagem img {
-                    max-width: 100%;
-                    max-height: 150px;
-                    object-fit: contain;
-                }
-                
-                .produto-info {
-                    flex: 1;
-                    max-height: 110px;
-                    overflow: hidden;
-                }
-                
-                .produto-nome {
-                    font-weight: bold;
-                    margin-bottom: 5px;
-                }
-                
-                .produto-descricao {
-                    font-size: 14px;
-                    color: #666;
-                    margin-bottom: 10px;
-                }
-                
-                .produto-preco {
-                    font-size: 20px;
-                    font-weight: bold;
-                }
-                
-                .decoracao-imagem {
-                    position: absolute;
-                    z-index: 5;
-                    border: none !important;
-                }
-                
-                .decoracao-imagem.transparente {
-                    background-color: transparent !important;
-                }
-                
-                .decoracao-imagem img {
-                    width: 100%;
-                    height: 100%;
-                    object-fit: contain;
-                }
-                
+                /* Ocultar controles */
                 .produto-controles, .decoracao-controles, .position-info {
                     display: none !important;
-                }
-                
-                @media print {
-                    .print-instructions {
-                        display: none;
-                    }
                 }
             </style>
         </head>
         <body>
+            <div class="print-instructions">
+                <strong>Instruções:</strong> Use Ctrl+P (ou ⌘+P no Mac) e selecione "Salvar como PDF"
+                <br>Para melhor resultado, escolha "Sem margens" e "Imprimir fundos"
+                <button onclick="window.print()">Imprimir Agora</button>
+                <button onclick="window.close()">Fechar</button>
+            </div>
+            
             <div class="a4-page">
                 ${decoracoesHTML}
                 ${produtosHTML}
             </div>
+            
+            <script>
+                // Auto-executar print após carregar completo
+                window.onload = function() {
+                    setTimeout(function() {
+                        // Tentar imprimir automaticamente
+                        try {
+                            window.print();
+                        } catch(e) {
+                            console.error("Erro ao imprimir automaticamente:", e);
+                        }
+                    }, 1000);
+                };
+            </script>
         </body>
         </html>
     `;
     
-    // Escrever o conteúdo na nova janela
     printWindow.document.open();
     printWindow.document.write(html);
     printWindow.document.close();
-    
-    // Dar tempo para os recursos carregarem e chamar a impressão da janela principal
-    printWindow.onload = function() { // Esperar o carregamento completo da nova janela
-        setTimeout(() => {
-            try {
-                printWindow.focus(); // Focar na janela
-                printWindow.print(); // Chamar a impressão
-                // printWindow.close(); // Opcional: fechar a janela após a impressão (pode ser bloqueado)
-            } catch (e) {
-                console.error("Erro ao tentar imprimir:", e);
-                alert("Não foi possível iniciar a impressão automaticamente. Por favor, use Ctrl+P na janela que abriu.");
-            }
-        }, 500); // Atraso de 500ms para garantir carregamento
-    };
     
     return true;
 }
